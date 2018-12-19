@@ -21,44 +21,14 @@
         <WebView android:id="@+id/playerContainer"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight=".7"
+            android:layout_weight=".85"
             xmlns:android="http://schemas.android.com/apk/res/android" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/videoListContainer"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight=".3"
+            android:layout_weight=".15"
             android:scrollbars="vertical"/>
     </LinearLayout>
-
-
-    <!--<fragment-->
-        <!--android:id="@+id/channelList"-->
-        <!--class="com.babablankie.alextube.channellist.ChannelListFragment"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="150dp"></fragment>-->
-
-    <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
-        <!--xmlns:tools="http://schemas.android.com/tools"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:orientation="horizontal"-->
-        <!--android:layout_below="@id/channelList">-->
-         <!--<fragment-->
-             <!--android:id="@+id/playerFragment"-->
-             <!--android:layout_width="0dp"-->
-             <!--android:layout_weight=".8"-->
-             <!--android:layout_height="match_parent"-->
-             <!--class="com.babablankie.alextube.player.PlayerFragment">-->
-        <!--</fragment>-->
-        <!--<fragment-->
-            <!--android:id="@+id/videoList"-->
-            <!--android:layout_width="0dp"-->
-            <!--android:layout_weight=".2"-->
-            <!--android:layout_height="match_parent"-->
-            <!--class="com.babablankie.alextube.videolist.VideoListFragment">-->
-        <!--</fragment>-->
-    <!--</LinearLayout>-->
-
 </LinearLayout>
