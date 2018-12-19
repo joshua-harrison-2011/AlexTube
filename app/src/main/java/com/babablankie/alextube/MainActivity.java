@@ -8,8 +8,13 @@ import android.support.v7.widget.RecyclerView;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,10 +25,15 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView videoListView;
     WebView videoPlayerView;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    private String googleApiKey;
+    private final static String googleApiKeyFileName = "api";
+    private final static String googleApiKeyFileDirectory = "raw";
 
-        ArrayList<String> channelIds = new ArrayList<String>();
+    private final static int RELEVANT_VIDEOS_LIMIT = 5;
+
+    private ArrayList<String> channelIds = new ArrayList<String>();
+
+    public void initChannelIdList() {
         // PBS Kids
         channelIds.add("UCrNnk0wFBnCS1awGjq_ijGQ");
         // Andy and Ryden
@@ -34,7 +44,13 @@ public class MainActivity extends AppCompatActivity {
         channelIds.add("UCb69PhsHzsorirJDlxaIXlg");
         // DC Kids / Combo Panda
         channelIds.add("UCyu8StPfZWapR6rfW_JgqcA");
+        // Nickelodean
+        channelIds.add("UC5M_h2S8Ldoc9M6f7B-_m6A");
+    }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        initChannelIdList();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.alextube);
@@ -43,7 +59,28 @@ public class MainActivity extends AppCompatActivity {
         videoListView = configureVideoListView();
         videoPlayerView = configureWebView();
 
-        loadChannelList(implode(",", channelIds));
+        googleApiKey = loadGoogleApiKey(googleApiKeyFileName, googleApiKeyFileDirectory);
+
+//        new Thread() {
+//            public void run() {
+//                final String channelId = "UCeItv2gvphuLXrCdSMv60YA";
+//                final String videoId = "KTh-acN3Kk8";
+//                YoutubeConnector yc = new YoutubeConnector(googleApiKey);
+//                ArrayList<VideoItem> videos = yc.searchRelatedVideos(videoId, channelId);
+//
+//                final VideoListViewAdapter adapter = new VideoListViewAdapter(videos);
+//                // Post to the UI thread to update the UI
+//                uiThreadCallbackHandler.post(new Runnable(){
+//                    public void run() {
+//                        videoListView.setAdapter(adapter);
+//                    }
+//                });
+//            }
+//        }.start();
+
+
+
+       loadChannelList(implode(",", channelIds));
     }
 
     public String implode(String delimiter, ArrayList<String> channelIds) {
@@ -95,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
     public void loadChannelList(final String channelIds) {
         new Thread(){
             public void run(){
-                YoutubeConnector yc = new YoutubeConnector();
+                YoutubeConnector yc = new YoutubeConnector(googleApiKey);
                 ArrayList<ChannelItem> channels = yc.searchChannels(channelIds);
 
                 final ChannelListViewAdapter adapter = new ChannelListViewAdapter(channels);
@@ -105,8 +142,11 @@ public class MainActivity extends AppCompatActivity {
                         channelListView.setAdapter(adapter);
                     }
                 });
-                // TODO: What if size == 0?
-                loadVideoList(channels.get(0).getId());
+
+                if (channels.size() > 0) {
+                    int randIndex = (new Random()).nextInt(channels.size());
+                    loadVideoList(channels.get(randIndex).getId());
+                }
             }
         }.start();
     }
@@ -114,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
     public void loadVideoList(final String channelId) {
         new Thread() {
             public void run() {
-                YoutubeConnector yc = new YoutubeConnector();
+                YoutubeConnector yc = new YoutubeConnector(googleApiKey);
                 ArrayList<VideoItem> videos = yc.searchVideos(channelId);
 
                 final VideoListViewAdapter adapter = new VideoListViewAdapter(videos);
@@ -125,16 +165,24 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-                // TODO: What if size == 0?
-                loadVideo(videos.get(0).getId());
+                if (videos.size() > 0) {
+                    int randIndex = (new Random()).nextInt(videos.size());
+                    loadVideo(videos.get(randIndex).getId());
+                }
             }
         }.start();
     }
 
-    public void loadVideo(String videoId) {
 
-        YoutubeConnector yc = new YoutubeConnector();
-        yc.searchRelatedVideos(videoId);
+    public void loadVideo(final String videoId) {
+        uiThreadCallbackHandler.post(new Runnable() {
+            public void run() {
+                loadVideoWorker(videoId);
+            }
+        });
+    }
+
+    public void loadVideoWorker(String videoId) {
 
         if (videoId == null) {
             return;
@@ -149,8 +197,11 @@ public class MainActivity extends AppCompatActivity {
         url += "&fs=0";
         // Try to disable YouTube logo
         url += "&modestbranding=1";
-        // Try to limit related videos to same channe
+        // Try to limit related videos to same channel
         url += "&rel=0";
+        // Try to disable closed captioning
+        url += "cc_load_policy=0";
+
 
         String html = "<html>\n" +
                 "<body>\n" +
@@ -160,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
                 "</body>\n" +
                 "</html>";
 
-        // TODO: This should be on the UI thread
         videoPlayerView.loadData(html, "text/html", "UTF-8");
     }
 
@@ -168,10 +218,50 @@ public class MainActivity extends AppCompatActivity {
     // Change the video when an item is clicked from the right panel
     public void onVideoSelected(VideoItem video) {
         loadVideo(video.getId());
+
+        final String videoId = video.getId();
+        new Thread() {
+            public void run() {
+                YoutubeConnector yc = new YoutubeConnector(googleApiKey);
+                ArrayList<VideoItem> videos = yc.searchRelatedVideos(videoId, channelIds);
+
+                if (videos.size() > RELEVANT_VIDEOS_LIMIT) {
+                    // Replace the video list with relevant videos if there are enough of them
+
+                    final VideoListViewAdapter adapter = new VideoListViewAdapter(videos);
+                    // Post to the UI thread to update the UI
+                    uiThreadCallbackHandler.post(new Runnable() {
+                        public void run() {
+                            videoListView.setAdapter(adapter);
+                        }
+                    });
+                }
+            }
+        }.start();
+
     }
 
     // Change the video list when a channel is clicked
     public void onChannelSelected(ChannelItem channel) {
         loadVideoList(channel.getId());
+    }
+
+    private String loadGoogleApiKey(final String fileName, final String fileDirectory){
+        InputStream ins = getResources().openRawResource(
+            getResources().getIdentifier(fileName, fileDirectory, getPackageName())
+        );
+
+        ByteArrayOutputStream byteStream = null;
+        try {
+            byte[] buffer = new byte[ins.available()];
+            ins.read(buffer);
+            byteStream = new ByteArrayOutputStream();
+            byteStream.write(buffer);
+            byteStream.close();
+            ins.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return byteStream.toString();
     }
 }
