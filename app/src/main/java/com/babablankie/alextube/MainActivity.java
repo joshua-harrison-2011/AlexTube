@@ -1,10 +1,17 @@
 package com.babablankie.alextube;
 
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -83,7 +90,15 @@ public class MainActivity extends AppCompatActivity {
        loadChannelList(implode(",", channelIds));
     }
 
-    public String implode(String delimiter, ArrayList<String> channelIds) {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_main_actions, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    private String implode(String delimiter, ArrayList<String> channelIds) {
         String channelIdsAsString = "";
         for (int i = 0; i < channelIds.size(); i++) {
             if (i > 0) {
@@ -263,5 +278,37 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return byteStream.toString();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Take appropriate action for each action item click
+        switch (item.getItemId()) {
+            case R.id.action_expand:
+                channelListView.setVisibility(View.VISIBLE);
+                videoListView.setVisibility(View.VISIBLE);
+                item.setVisible(false);
+                findViewById(R.id.action_collapse).setVisibility(View.GONE);
+                findViewById(R.id.action_collapse).setVisibility(View.GONE);
+                return true;
+            case R.id.action_collapse:
+                channelListView.setVisibility(View.GONE);
+                videoListView.setVisibility(View.GONE);
+                return true;
+//                Drawable expandIcon = getResources().getDrawable(R.drawable.ic_action_expand);
+//                Drawable collapseIcon = getResources().getDrawable(R.drawable.ic_action_collapse);
+//
+//                if (item.getIcon().ge == expandIcon) {
+//                    channelListView.setVisibility(View.VISIBLE);
+//                    videoListView.setVisibility(View.VISIBLE);
+//                    item.setIcon(collapseIcon);
+//                } else {
+//                    channelListView.setVisibility(View.GONE);
+//                    videoListView.setVisibility(View.GONE);
+//                    item.setIcon(expandIcon);
+//                }
+            default:
+                return true;
+        }
     }
 }

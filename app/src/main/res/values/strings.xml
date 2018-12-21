@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">AlexTube</string>
-    <string name="google_api_key">default</string>
+    <string name="expand_label">Expand</string>
+    <string name="collapse_label">Collapse</string>
 </resources>
