@@ -1,8 +1,6 @@
 package com.babablankie.alextube;
 
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
-import android.graphics.drawable.Drawable;
+
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,7 +13,6 @@ import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     // Handler provides mechanism to run something in the UI thread via a callback
     final Handler uiThreadCallbackHandler = new Handler();
 
+    Menu actionMenu;
+
     RecyclerView channelListView;
     RecyclerView videoListView;
     WebView videoPlayerView;
@@ -38,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final static int RELEVANT_VIDEOS_LIMIT = 5;
 
-    private ArrayList<String> channelIds = new ArrayList<String>();
+    private ArrayList<String> channelIds = new ArrayList<>();
 
     public void initChannelIdList() {
         // PBS Kids
@@ -66,28 +65,8 @@ public class MainActivity extends AppCompatActivity {
         videoListView = configureVideoListView();
         videoPlayerView = configureWebView();
 
-        googleApiKey = loadGoogleApiKey(googleApiKeyFileName, googleApiKeyFileDirectory);
-
-//        new Thread() {
-//            public void run() {
-//                final String channelId = "UCeItv2gvphuLXrCdSMv60YA";
-//                final String videoId = "KTh-acN3Kk8";
-//                YoutubeConnector yc = new YoutubeConnector(googleApiKey);
-//                ArrayList<VideoItem> videos = yc.searchRelatedVideos(videoId, channelId);
-//
-//                final VideoListViewAdapter adapter = new VideoListViewAdapter(videos);
-//                // Post to the UI thread to update the UI
-//                uiThreadCallbackHandler.post(new Runnable(){
-//                    public void run() {
-//                        videoListView.setAdapter(adapter);
-//                    }
-//                });
-//            }
-//        }.start();
-
-
-
-       loadChannelList(implode(",", channelIds));
+        googleApiKey = loadGoogleApiKey();
+        loadChannelList(implode(",", channelIds));
     }
 
     @Override
@@ -95,18 +74,20 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.activity_main_actions, menu);
 
+        actionMenu = menu;
         return super.onCreateOptionsMenu(menu);
     }
 
-    private String implode(String delimiter, ArrayList<String> channelIds) {
-        String channelIdsAsString = "";
-        for (int i = 0; i < channelIds.size(); i++) {
+    // Return a string with the elements of array joined on delimter
+    private String implode(String delimiter, ArrayList<String> array) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < array.size(); i++) {
             if (i > 0) {
-                channelIdsAsString += delimiter;
+                stringBuilder.append(delimiter);
             }
-            channelIdsAsString += channelIds.get(i);
+            stringBuilder.append(array.get(i));
         }
-        return channelIdsAsString;
+        return stringBuilder.toString();
     }
 
     public RecyclerView configureChannelListView() {
@@ -137,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        // JavaScript.  Not used with iframes
+        // JavaScript.  Required for player to work
         view.getSettings().setJavaScriptEnabled(true);
         view.setWebChromeClient(new WebChromeClient());
 
@@ -261,12 +242,12 @@ public class MainActivity extends AppCompatActivity {
         loadVideoList(channel.getId());
     }
 
-    private String loadGoogleApiKey(final String fileName, final String fileDirectory){
+    private String loadGoogleApiKey(){
         InputStream ins = getResources().openRawResource(
-            getResources().getIdentifier(fileName, fileDirectory, getPackageName())
+            getResources().getIdentifier(googleApiKeyFileName, googleApiKeyFileDirectory, getPackageName())
         );
 
-        ByteArrayOutputStream byteStream = null;
+        ByteArrayOutputStream byteStream;
         try {
             byte[] buffer = new byte[ins.available()];
             ins.read(buffer);
@@ -274,10 +255,11 @@ public class MainActivity extends AppCompatActivity {
             byteStream.write(buffer);
             byteStream.close();
             ins.close();
+            return byteStream.toString();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return byteStream.toString();
+        return null;
     }
 
     @Override
@@ -288,25 +270,14 @@ public class MainActivity extends AppCompatActivity {
                 channelListView.setVisibility(View.VISIBLE);
                 videoListView.setVisibility(View.VISIBLE);
                 item.setVisible(false);
-                findViewById(R.id.action_collapse).setVisibility(View.GONE);
-                findViewById(R.id.action_collapse).setVisibility(View.GONE);
+                actionMenu.findItem(R.id.action_collapse).setVisible(true);
                 return true;
             case R.id.action_collapse:
                 channelListView.setVisibility(View.GONE);
                 videoListView.setVisibility(View.GONE);
+                item.setVisible(false);
+                actionMenu.findItem(R.id.action_expand).setVisible(true);
                 return true;
-//                Drawable expandIcon = getResources().getDrawable(R.drawable.ic_action_expand);
-//                Drawable collapseIcon = getResources().getDrawable(R.drawable.ic_action_collapse);
-//
-//                if (item.getIcon().ge == expandIcon) {
-//                    channelListView.setVisibility(View.VISIBLE);
-//                    videoListView.setVisibility(View.VISIBLE);
-//                    item.setIcon(collapseIcon);
-//                } else {
-//                    channelListView.setVisibility(View.GONE);
-//                    videoListView.setVisibility(View.GONE);
-//                    item.setIcon(expandIcon);
-//                }
             default:
                 return true;
         }

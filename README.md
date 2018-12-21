@@ -44,6 +44,8 @@ I'm not sure if it works.  This behavior doesn't happen in the emulator.
 To avoid putting my API Key in Github, the Google API Key is read from app/src/main/res/raw/api.key.
 This file is not in source control and will need to be populated before a build will work.
 
+https://console.developers.google.com/apis?project=alextube
+
 ## Channel Ids
 
 The list of whitelisted channel ids is defined in MainActivity.  If you are looking for a channel
