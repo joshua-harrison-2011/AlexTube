@@ -40,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> channelIds = new ArrayList<>();
 
     public void initChannelIdList() {
+        // If adding a "User", not a "Channel", subscribe to the user and use
+        // the adhoc subscription api to determine the id.
+        // https://developers.google.com/youtube/v3/docs/subscriptions/list
+
         // PBS Kids
         channelIds.add("UCrNnk0wFBnCS1awGjq_ijGQ");
         // Andy and Ryden
@@ -52,6 +56,12 @@ public class MainActivity extends AppCompatActivity {
         channelIds.add("UCyu8StPfZWapR6rfW_JgqcA");
         // Nickelodean
         channelIds.add("UC5M_h2S8Ldoc9M6f7B-_m6A");
+        // Cookie Swirl C
+        channelIds.add("UCelMeixAOTs2OQAAi9wU8-g");
+        // Daily Bumps
+        channelIds.add("UCyCyTe_1bT2aIPwG_gxbyeg");
+        // Genevieve's Playhouse
+        channelIds.add("UCK5Q72Uyo73uRPk8PmM2A3w");
     }
 
     @Override
