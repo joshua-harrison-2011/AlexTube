@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
         channelIds.add("UCyCyTe_1bT2aIPwG_gxbyeg");
         // Genevieve's Playhouse
         channelIds.add("UCK5Q72Uyo73uRPk8PmM2A3w");
+        // FG Tee V
+        channelIds.add("UCC-RHF_77zQdKcA75hr5oTQ");
     }
 
     @Override

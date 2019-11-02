@@ -54,6 +54,8 @@ id, but only have a user name, you can use the video list api:
     https://developers.google.com/youtube/v3/docs/videos/list
 
 to query data about a video owned by the user.  This data will include the associated channel id.
+Once you have a video id, put it into the api explorer as the "id" parameter and set "part"
+ to "snippet".
 
 ## Considered but discarded
 
