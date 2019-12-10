@@ -90,6 +90,12 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    protected void onPause() {
+        videoPlayerView.evaluateJavascript("player.pauseVideo();", null);
+        super.onPause();
+    }
+
     // Return a string with the elements of array joined on delimter
     private String implode(String delimiter, ArrayList<String> array) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -196,30 +202,33 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String url = "https://www.youtube.com/embed/" + videoId;
-        // Don't start the video right away
-        url += "?autoplay=1";
-        // Disable keyboard recognition
-        url += "&disablekb=1";
-        // Don't display fullscreen button
-        url += "&fs=0";
-        // Try to disable YouTube logo
-        url += "&modestbranding=1";
-        // Try to limit related videos to same channel
-        url += "&rel=0";
-        // Try to disable closed captioning
-        url += "cc_load_policy=0";
-
-
-        String html = "<html>\n" +
-                "<body>\n" +
-                "<iframe width=\"100%\" height=\"100%\"\n" +
-                "src=\"" + url + "\" frameborder=0>\n" +
-                "</iframe>\n" +
-                "</body>\n" +
-                "</html>";
+        // https://developers.google.com/youtube/iframe_api_reference
+        String html = "<html><body>" +
+                "    <div id=\"player\"></div>" +
+                "    <script>" +
+                "      var tag = document.createElement('script');\n" +
+                "      tag.src = \"https://www.youtube.com/iframe_api\";\n" +
+                "      var firstScriptTag = document.getElementsByTagName('script')[0];\n" +
+                "      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);\n" +
+                "      var player;\n" +
+                "      function onYouTubeIframeAPIReady() {\n" +
+                "        player = new YT.Player('player', {\n" +
+                "          height: '100%'," +
+                "          width: '100%'," +
+                "          videoId: '" + videoId + "'," +
+                "          playerVars: {" +
+                "               \"cc_load_policy\": 0," +
+                "               \"disablekb\": 1," +
+                "               \"modestbranding\": 1," +
+                "               \"rel\": 1," +
+                "               \"fs\": 0" +
+                "          }" +
+                "        });\n" +
+                "      }\n" +
+                "    </script></body></html>";
 
         videoPlayerView.loadData(html, "text/html", "UTF-8");
+//        videoPlayerView.evaluateJavascript("alert('hi')", null);
     }
 
 
